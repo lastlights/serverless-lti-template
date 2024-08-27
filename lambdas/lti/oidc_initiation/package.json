@@ -1,0 +1,22 @@
+{
+  "name": "oidc-initiation",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mitchell Guihot",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.143",
+    "@types/node": "^22.5.0",
+    "@types/uuid": "^10.0.0",
+    "aws-lambda": "^1.0.7"
+  },
+  "dependencies": {
+    "esbuild": "^0.23.1",
+    "uuid": "^10.0.0"
+  }
+}

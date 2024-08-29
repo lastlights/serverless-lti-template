@@ -64,7 +64,7 @@ Resources:
           Type: Api
           Properties:
             Path: /lti/authorize_redirect
-            Method: POST
+            Method: GET,POST
             Auth:
               Authorizer: NONE
     Metadata: # Manage esbuild properties

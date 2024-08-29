@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as jose from 'jose'
-import { parseBody } from '../../../layers/util/src';
+import { parseBody } from 'lti-util';
 
 // Tools MUST validate the ID Token in the token response in the following manner:
 

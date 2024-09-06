@@ -15,6 +15,7 @@ interface OIDCInitiationRequest {
 }
 
 interface CanvasInitiationRequest extends OIDCInitiationRequest {
+    iss: 'https://canvas.instructure.com';
     client_id: string; // The OAuth2 client id, or Developer Key id, for convenience.
     deployment_id: string; // The deployment id for the tool.
     lti_message_hint: string; // The LTI message hint, as a JWT.
@@ -22,6 +23,16 @@ interface CanvasInitiationRequest extends OIDCInitiationRequest {
     canvas_region: string; // The region in which the Canvas instance is hosted.
     lti_storage_target: string; // The LTI storage target.
 }
+
+interface BlackboardInitiationRequest extends OIDCInitiationRequest {
+    iss: 'https://blackboard.com';
+    lti_message_hint: string; // The LTI message hint, as a JWT.
+    lti_deployment_id: string; // The deployment id for the tool.
+    client_id: string; // The OAuth2 client id, or Developer Key id, for convenience.
+    lti_storage_target: string; // The LTI storage target.
+}
+
+type LTIInitiationRequest = CanvasInitiationRequest | BlackboardInitiationRequest;
 
 const LOGIN_URL = 'https://sso.canvaslms.com/api/lti/authorize_redirect'
 
@@ -37,31 +48,50 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         return {
             statusCode: 400,
             body: JSON.stringify({
-                message: 'Invalid request',
+                message: 'Invalid initiation request',
             }),
         };
     }
 
-    // retrieve platform information from the issuer
-    // const platform_config = await getPlatformConfig(body.iss);
+    return processLtiInitiation(body);
+}
 
-    // redirect to the Canvas login with the following params
+function processLtiInitiation(body: LTIInitiationRequest): APIGatewayProxyResult {
+    switch (body.iss) {
+        case 'https://canvas.instructure.com':
+            return initiateCanvasLogin(body);
+        case 'https://blackboard.com':
+            return initiateBlackboardLogin(body);
+        default:
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    message: 'Unsupported platform',
+                }),
+            };
+    }
+}
+
+function initiateCanvasLogin(body: CanvasInitiationRequest): APIGatewayProxyResult {
+
+    const config = getPlatformConfig(body.iss);
+
     const params = {
         login_hint: body.login_hint,
-        client_id: body.client_id as string ?? '',
+        client_id: body.client_id,
         redirect_uri: body.target_link_uri,
         scope: 'openid',
         state: uuidv4(),
         nonce: uuidv4(),
         prompt: 'none',
         response_mode: 'form_post',
-        response_type: 'id_token'
-    }
+        response_type: 'id_token',
+    };
 
     return {
         statusCode: 307,
         headers: {
-            Location: `${LOGIN_URL}?${new URLSearchParams(params).toString()}`,
+            Location: `${LOGIN_URL}?${new URLSearchParams(params)}`,
         },
         multiValueHeaders: {
             'Set-Cookie': [
@@ -69,11 +99,24 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 `nonce=${params.nonce}; HttpOnly; SameSite=Lax`,
             ],
         },
-        body: '', // Add an empty string or provide an appropriate value for the body property.
+        body: '',
     };
 }
 
-function isValidRequest(request: any): request is OIDCInitiationRequest {
+function initiateBlackboardLogin(body: BlackboardInitiationRequest): APIGatewayProxyResult {
+    throw new Error('Not implemented');
+}
+
+function isValidRequest(request: any): request is LTIInitiationRequest {
+    if (!request.iss) return false;
+    if (typeof request.iss !== 'string') return false;
+
+    if (!request.login_hint) return false;
+    if (typeof request.login_hint !== 'string') return false;
+
+    if (!request.target_link_uri) return false;
+    if (typeof request.target_link_uri !== 'string') return false;
+
     return true;
 }
 

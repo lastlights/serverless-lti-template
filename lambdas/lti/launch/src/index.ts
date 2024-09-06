@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as jose from 'jose'
-import { parseBody } from 'lti-util';
+import { parseBody, verifyJWT } from 'lti-util';
 
 // Tools MUST validate the ID Token in the token response in the following manner:
 
@@ -22,12 +21,10 @@ import { parseBody } from 'lti-util';
 
 // The ID Token MUST contain a nonce Claim. The Tool SHOULD verify that it has not yet received this nonce value (within a Tool-defined time window), in order to help prevent replay attacks. The Tool MAY define its own precise method for detecting replay attacks.
 
-const JWK = jose.createRemoteJWKSet(new URL('https://sso.canvaslms.com/api/lti/security/jwks'))
-
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     console.log(`Launch: `, event);
 
-    const body = parseBody(event.body, event.headers['content-type']);
+    const body = parseBody(event.body, event.headers['Content-Type']);
 
     console.log(`Parsed request:`, body);
 
@@ -41,7 +38,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
     }
 
-    const jwt = await jose.jwtVerify(body.id_token, JWK);
+    const jwt = await verifyJWT(body.id_token, 'https://sso.canvaslms.com/api/lti/security/jwks');
 
     console.log(`JWT:`, jwt.payload);
 

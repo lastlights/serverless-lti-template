@@ -1,17 +1,15 @@
 {
-  "name": "lti-util",
+  "name": "lti-dependency-layer",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "description": "",
-  "devDependencies": {
-    "@types/aws-lambda": "^8.10.143"
-  },
   "dependencies": {
-    "jose": "^5.8.0"
+    "jose": "^5.8.0",
+    "uuid": "^10.0.0"
   }
 }

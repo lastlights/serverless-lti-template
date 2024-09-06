@@ -32,7 +32,7 @@ Resources:
         Api:
           Type: Api
           Properties:
-            Path: /lti/register
+            Path: /lti/registration
             Method: GET
             Auth:
               Authorizer: NONE
@@ -59,12 +59,21 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 100
+      Layers:
+        - !Ref LambdaLayer
       Events:
-        Api:
+        GetApi:
           Type: Api
           Properties:
             Path: /lti/authorize_redirect
-            Method: GET,POST
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        PostApi:
+          Type: Api
+          Properties:
+            Path: /lti/authorize_redirect
+            Method: POST
             Auth:
               Authorizer: NONE
     Metadata: # Manage esbuild properties
@@ -78,6 +87,12 @@ Resources:
           - .js=.mjs
         EntryPoints:
         - src/index.ts
+        External:
+         - '@aws-sdk/client-dynamodb'
+         - '@aws-sdk/lib-dynamodb'
+         - 'lti-util'
+         - 'jose'
+         - 'uuid'
   # Simple syntax to create a DynamoDB table with a single attribute primary key, more in
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesssimpletable
   
@@ -91,6 +106,8 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 100
+      Layers:
+        - !Ref LambdaLayer
       Events:
         Api:
           Type: Api
@@ -110,8 +127,21 @@ Resources:
           - .js=.mjs
         EntryPoints:
         - src/index.ts
+        External:
+         - 'lti-util'
+         - 'jose'
   # Simple syntax to create a DynamoDB table with a single attribute primary key, more in
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesssimpletable
+
+  LambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: Lambda-Layer
+      ContentUri: layers/lti-dependency-layer
+      CompatibleRuntimes:
+        - nodejs20.x
+    Metadata: # Manage esbuild properties
+      BuildMethod: makefile
 
   # DynamoDB table to store item: {id: &lt;ID&gt;, name: &lt;NAME&gt;}
   SampleTable:

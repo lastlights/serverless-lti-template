@@ -1,0 +1,20 @@
+{
+    "name": "lti-util",
+    "version": "1.0.0",
+    "main": "index.mjs",
+    "types": "src/index.ts",
+
+    "scripts": {
+        "build": "esbuild src/index.ts --bundle --format=esm --out-extension:.js=.mjs --target=es2022"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.143",
+        "esbuild": "^0.23.1"
+    },
+    "dependencies": {
+        "jose": "^5.8.0"
+    }
+}
